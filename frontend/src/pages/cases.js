@@ -7,15 +7,19 @@ export function casesPage(state, identity) {
   const {spec, session, cases, runs} = state;
   const selected = cases.find(row=>row.id===identity) || cases[0];
   const operator = session.role==='operator';
-  const rows = cases.map(row=>[`<a href="#cases/${row.id}" ${row.id===selected?.id?'aria-current="true"':''}>${esc(row.title)}</a>`, esc(row.author), esc(date(row.created_at))]);
+  const rows = cases.map(row=>[`<a href="#cases/${row.id}" ${row.id===selected?.id?'aria-current="true"':''}>${esc(row.title)}</a>`,
+    row.cleaned_at ? '<span class="status" data-state="cleaned">已清理</span>' : esc(row.author),
+    esc(date(row.created_at))]);
   const instruction = selected ? `<h2>${esc(selected.title)}</h2><p>${esc(spec.guidance)}</p>` : '';
-  const input = selected ? Object.entries(selected.payload).map(([key, value])=>{
+  const input = selected && !selected.cleaned_at ? Object.entries(selected.payload).map(([key, value])=>{
     const label = spec.field_labels[key] || key;
     const rows = Array.isArray(value) && value.every(x=>x && typeof x === 'object' && !Array.isArray(x));
     return panel(label, rows ? entries(value.slice(0,10), spec.field_labels) + (value.length>10?`<p class="note">显示前 10 条，共 ${value.length} 条。</p>`:'') : `<pre>${esc(value)}</pre>`);
   }).join('') : '';
+  const cleanedNote = selected?.cleaned_at
+    ? `<p class="note" data-testid="case-cleaned">该档案已于 ${esc(date(selected.cleaned_at))} 到期清理，原始排片、授权输入和未签报告已清除；已签报告仍可按原编号查询。</p>` : '';
   return `${heading(topic.modules[0], spec.summary, operator?'<a class="button" href="#editor">建立档案</a>':'')}
-    <div class="spread"><section aria-label="档案目录">${records([spec.entity_labels[0], '经办', '建立时间'], rows, '尚未建立档案。经办员可以从演示资料建立第一份。')}</section>
-    <aside class="brief">${instruction || `<h2>${esc(spec.customer)}</h2>`}${selected?`<p class="note">该档案记录 ${runs.filter(row=>row.case_id===selected.id).length} 次执行。</p>`:''}${selected&&operator?`<a href="#editor/${selected.id}">复制为新档案</a>`:''}</aside></div>
+    <div class="spread"><section aria-label="档案目录">${records([spec.entity_labels[0], '经办 / 状态', '建立时间'], rows, '尚未建立档案。经办员可以从演示资料建立第一份。')}</section>
+    <aside class="brief">${instruction || `<h2>${esc(spec.customer)}</h2>`}${cleanedNote}<p class="note">该档案记录 ${runs.filter(row=>row.case_id===selected.id).length} 次执行。</p>${selected&&operator&&!selected.cleaned_at?`<a href="#editor/${selected.id}">复制为新档案</a>`:''}</aside></div>
     ${input ? `<div class="inspection">${input}</div>`:''}`;
 }

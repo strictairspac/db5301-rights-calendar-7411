@@ -13,7 +13,8 @@ cases = Table('business_cases', schema,
     Column('title', String(120), nullable=False),
     Column('payload', JSON, nullable=False),
     Column('author', String(40), nullable=False),
-    Column('created_at', String(32), nullable=False))
+    Column('created_at', String(32), nullable=False),
+    Column('cleaned_at', String(32)))
 runs = Table('business_runs', schema,
     Column('id', Integer, primary_key=True),
     Column('case_id', ForeignKey('business_cases.id'), nullable=False, index=True),

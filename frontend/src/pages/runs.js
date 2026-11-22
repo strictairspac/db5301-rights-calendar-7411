@@ -1,7 +1,7 @@
 import {heading, panel} from '../components/common/heading.js';
 import {records} from '../components/common/records.js';
 import {badge} from '../components/common/status.js';
-import {statusLabels} from '../constants/workflow.js';
+import {auditLabels, statusLabels} from '../constants/workflow.js';
 import {topic} from '../constants/project.js';
 import {date, esc} from '../utils/dom.js';
 
@@ -20,5 +20,5 @@ export function runsPage(state, identity) {
   const audit = state.audit.filter(x=>selected && x.reference===String(selected.id) && ['enqueue', 'complete', 'failed'].includes(x.action));
   return `${heading(topic.modules[2], `${state.spec.entity_labels[1]}与后台处理进度`, '<button class="secondary" type="button" id="refresh">刷新记录</button>')}
     <div class="spread"><section>${records(['档案','状态','经办','提交时间'], rows, '暂无执行记录。')}</section><aside class="brief">${detail}</aside></div>
-    ${audit.length?panel('操作记录', records(['操作者','操作','时间'], audit.map(x=>[esc(x.actor),esc(statusLabels[x.action]||'提交执行'),esc(date(x.created_at))]))):''}`;
+    ${audit.length?panel('操作记录', records(['操作者','操作','时间'], audit.map(x=>[esc(x.actor),esc(auditLabels[x.action]||'提交执行'),esc(date(x.created_at))]))):''}`;
 }
